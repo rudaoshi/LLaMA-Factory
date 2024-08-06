@@ -561,5 +561,13 @@
       "prompt": "content"
     },
     "folder": "python"
+  },
+  "seqoia": {
+    "file_name": "/home/sun/Projects/oix/experiments/oia/data/seqoia.train.jsonl",
+    "columns": {
+      "prompt": "prompt",
+      "query": "query",
+      "response": "response"
+    }
   }
 }
