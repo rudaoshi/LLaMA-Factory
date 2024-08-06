@@ -77,9 +77,13 @@ class CustomPPOTrainer(PPOTrainer, Trainer):
         ref_model: Optional["AutoModelForCausalLMWithValueHead"],
         tokenizer: "PreTrainedTokenizer",
         processor: Optional["ProcessorMixin"],
-        dataset: "Dataset",
         data_collator: "DataCollatorWithPadding",
+        train_dataset: Optional["Dataset"] = None,
+        eval_dataset: Optional["Dataset"] = None,
     ) -> None:
+        if eval_dataset is not None:
+            raise NotImplementedError("PPOTrainer does not support eval dataset yet.")
+
         backward_batch_size = training_args.per_device_train_batch_size * training_args.gradient_accumulation_steps
         ppo_config = PPOConfig(
             model_name=model_args.model_name_or_path,
@@ -115,7 +119,9 @@ class CustomPPOTrainer(PPOTrainer, Trainer):
             num_training_steps = training_args.max_steps
         else:
             total_train_batch_size = backward_batch_size * finetuning_args.ppo_buffer_size * training_args.world_size
-            num_training_steps = training_args.num_train_epochs * math.ceil(len(dataset) / total_train_batch_size)
+            num_training_steps = training_args.num_train_epochs * math.ceil(
+                len(train_dataset) / total_train_batch_size
+            )
 
         optimizer = self.create_optimizer(model, training_args, finetuning_args)
         scheduler = self.create_scheduler(training_args, num_training_steps, optimizer)
@@ -126,7 +132,7 @@ class CustomPPOTrainer(PPOTrainer, Trainer):
             model=model,
             ref_model=ref_model,
             tokenizer=tokenizer,
-            dataset=dataset,
+            dataset=train_dataset,
             data_collator=data_collator,
             lr_scheduler=scheduler,
         )
@@ -381,8 +387,9 @@ class CustomPPOTrainer(PPOTrainer, Trainer):
         Both inputs and outputs are put on CPU.
         """
         if self.finetuning_args.reward_model_type == "api":
-            token_ids = [torch.cat((q, r), dim=-1).tolist() for q, r in zip(queries, responses)]
-            messages = self.tokenizer.batch_decode(token_ids, skip_special_tokens=True)
+            queries = [self.tokenizer.decode(q.tolist(), skip_special_tokens=True) for q in queries]
+            responses = [self.tokenizer.decode(r.tolist(), skip_special_tokens=True) for r in responses]
+            messages = [{"query": q, "response": r} for q, r in zip(queries, responses)]
             return get_rewards_from_server(self.reward_model, messages)
 
         batch: Dict[str, "torch.Tensor"] = self.prepare_model_inputs(queries, responses)
