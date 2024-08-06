@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from trl import AutoModelForCausalLMWithValueHead
 
 
-def get_rewards_from_server(server_url: str, messages: List[str]) -> List[torch.Tensor]:
+def get_rewards_from_server(server_url: str, messages: List[Dict[str, str]]) -> List[torch.Tensor]:
     r"""
     Gets reward scores from the API server.
     """
