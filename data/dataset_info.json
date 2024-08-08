@@ -572,8 +572,24 @@
     },
     "folder": "python"
   },
-  "seqoia": {
+  "seqoia_train": {
     "file_name": "/home/sun/Projects/oix/experiments/oia/data/seqoia.train.jsonl",
+    "columns": {
+      "prompt": "prompt",
+      "query": "query",
+      "response": "response"
+    }
+  },
+    "seqoia_dev": {
+    "file_name": "/home/sun/Projects/oix/experiments/oia/data/seqoia.dev.jsonl",
+    "columns": {
+      "prompt": "prompt",
+      "query": "query",
+      "response": "response"
+    }
+  },
+  "seqoia_test": {
+    "file_name": "/home/sun/Projects/oix/experiments/oia/data/seqoia.test.jsonl",
     "columns": {
       "prompt": "prompt",
       "query": "query",

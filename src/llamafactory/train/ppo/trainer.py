@@ -145,7 +145,7 @@ class CustomPPOTrainer(PPOTrainer, Trainer):
 
         self.generation_config = GenerationConfig(
             pad_token_id=self.tokenizer.pad_token_id,
-            eos_token_id=[self.tokenizer.eos_token_id] + self.tokenizer.additional_special_tokens_ids,
+            eos_token_id=[self.tokenizer.eos_token_id],
             **generating_args.to_dict(),
         )
 
@@ -358,6 +358,7 @@ class CustomPPOTrainer(PPOTrainer, Trainer):
 
         query = batch["input_ids"].detach().cpu()
         response = generate_output[:, batch["input_ids"].size(-1) :].detach().cpu()
+
         queries, responses = [], []
         for i in range(len(query)):
             query_start_index = (query[i] != self.tokenizer.pad_token_id).nonzero()[0].item()
@@ -387,8 +388,8 @@ class CustomPPOTrainer(PPOTrainer, Trainer):
         Both inputs and outputs are put on CPU.
         """
         if self.finetuning_args.reward_model_type == "api":
-            queries = [self.tokenizer.decode(q.tolist(), skip_special_tokens=True) for q in queries]
-            responses = [self.tokenizer.decode(r.tolist(), skip_special_tokens=True) for r in responses]
+            queries = [self.tokenizer.decode(q.tolist()) for q in queries]
+            responses = [self.tokenizer.decode(r.tolist()) for r in responses]
             messages = [{"query": q, "response": r} for q, r in zip(queries, responses)]
             return get_rewards_from_server(self.reward_model, messages)
 
